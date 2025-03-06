@@ -1,6 +1,7 @@
-image: Ubuntu2204  # образ для сборки
+image: Ubuntu  # образ для сборки
 
-stack: node 20  # окружение
+environment:
+  nodejs_version: "20"  # окружение
 
 branches:
   only:
@@ -10,7 +11,8 @@ branches:
 cache: node_modules  # кеширование
 
 install:
-  - yarn  # команда установки зависимостей
+  - nvm install $nodejs_version  # Установка Node.js
+  - yarn  # Установка зависимостей # команда установки зависимостей
 
 build: off  # отключаем встроенную в appveyor систему сборки
 
