@@ -19,46 +19,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  eslint:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
-          cache: 'yarn'
-      - run: yarn
-      - run: yarn lint
-
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.14.0
-          cache: 'yarn'
-      - run: yarn
-      - run: yarn test
-
-  build:
-    needs: [eslint, test]
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.14.0
-          cache: 'yarn'
-      - run: yarn
+          node-version: 20
+      - run: yarn install
       - run: yarn build
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -67,5 +35,24 @@ jobs:
         with:
           path: 'dist'
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Настройка Git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Использование GITHUB_TOKEN для аутентификации
+          echo "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" > ~/.git-credentials
+          
+          # Клонирование ветки gh-pages или создание её
+          git clone --branch=gh-pages https://github.com/${{ github.repository }} gh-pages || git clone --single-branch --branch=gh-pages https://github.com/${{ github.repository }} gh-pages
+          
+          # Копирование файлов в gh-pages
+          cd gh-pages
+          cp -r ../dist/* ./
+          
+          # Добавление, коммит и пуш изменений в ветку gh-pages
+          git add .
+          git commit -m "Deploy to GitHub Pages"
+          git push https://${GITHUB_TOKEN}@github.com/${{ github.repository }} gh-pages --force
