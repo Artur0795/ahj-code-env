@@ -11,10 +11,6 @@ branches:
 
 cache: node_modules  # кеширование
 
-install:
-  - ps: Install-Product node $env:nodimage: Ubuntu1804  # образ для сборки
-
-
 stack: node 16  # окружение
 
 branches:
