@@ -1,8 +1,6 @@
-version: 1.0.{build}
-image: Ubuntu
+image: Ubuntu2204  # образ для сборки
 
-environment:
-  nodejs_version: "18"
+stack: node 20  # окружение
 
 branches:
   only:
@@ -11,38 +9,20 @@ branches:
 
 cache: node_modules  # кеширование
 
-stack: node 16  # окружение
-
-branches:
-  only:
-    - master  # ветка git
-
-cache: node_modules  # кеширование
-
 install:
-  - corepack enable
-  - corepack prepare pnpm@latest-8 --activate
-  - pnpm install
+  - yarn  # команда установки зависимостей
 
 build: off  # отключаем встроенную в appveyor систему сборки
 
 build_script:
-  - pnpm lint
-  - pnpm build
+  - yarn build   # команда сборки
+
+test_script:
+  - yarn lint && yarn test  # скрипт тестирования
 
 deploy_script:  # скрипт развёртывания
   - git config --global credential.helper store
   - git config --global user.name AppVeyor
   - git config --global user.email ci@appveyor.com
   - echo "https://$GITHUB_TOKEN:x-oauth-basic@github.com" > "$HOME/.git-credentials"
-  - npx push-dir --dir=dist --branch=gh-pages --force --verboseejs_version
-  - npm install  # команда установки зависимостей
-
-build: off  # отключаем встроенную в appveyor систему сборки
-
-build_script:
-  - npm run build   # команда сборки
-  - npm run test
-
-test_script:
-  - npm run lint && npm test  # скрипт тестирования
+  - npx gh-pages -d dist -u "appveyor-bot <ci@appveyor>"
